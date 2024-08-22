@@ -1,0 +1,368 @@
+# MTK project .rc configure
+
+import init.mt6755.usb.rc
+
+on init
+    mkdir /mnt/media_rw/usbotg 0700 media_rw media_rw
+    mkdir /storage/usbotg 0700 root root
+
+# add weixin soter support
+    setprop ro.mtk_soter_support 1
+
+on post-fs-data
+
+
+
+
+
+
+
+
+
+
+#Camera
+    chmod 0660 /dev/MAINAF
+    chown system camera /dev/MAINAF
+
+    chmod 0660 /dev/MAINAF2
+    chown system camera /dev/MAINAF2
+
+    chmod 0660 /dev/SUBAF
+    chown system camera /dev/SUBAF
+
+    chmod 0660 /dev/GAF001AF
+    chown system camera /dev/GAF001AF
+
+    chmod 0660 /dev/DW9714AF
+    chown system camera /dev/DW9714AF
+
+    chmod 0660 /dev/LC898212AF
+    chown system camera /dev/LC898212AF
+
+    chmod 0660 /dev/BU64745GWZAF
+    chown system camera /dev/BU64745GWZAF
+	
+    chmod 0777 /dev/smartpa_i2c
+    chown system audio /dev/smartpa_i2c	
+
+#SMB
+    chown system system /proc/smb/ScreenComm
+    chmod 0660 /proc/smb/ScreenComm
+
+
+
+
+#Define device for ATCID
+    chmod 660 /dev/ttyGS0
+    chown system /dev/ttyGS0
+    chmod 660 /dev/ttyGS1
+    chown system /dev/ttyGS1
+
+# MEIZU_S25 smartpa calibrate
+    chown media media /sys/class/meizu/tfa98xx/calibrate
+    chown media media /sys/class/meizu/tfa98xx/impedance
+
+
+
+    chmod 0660 /dev/spm
+    chown system system /dev/spm
+
+# Change permissions for accdet calibration
+    chown system system /sys/class/meizu/accdet_calibration/cmd
+    chown system system /sys/class/meizu/accdet_calibration/data
+    chown system system /sys/class/meizu/accdet_calibration/state
+
+on init
+    # Refer to http://source.android.com/devices/tech/storage/index.html
+    # It said, "Starting in Android 4.4, multiple external storage devices are surfaced to developers through
+    #           Context.getExternalFilesDirs(), Context.getExternalCacheDirs(), and Context.getObbDirs().
+    #           External storage devices surfaced through these APIs must be a semi-permanent part of the device (such as an SD card slot in a battery compartment).
+    #           Developers expect data stored in these locations to be available over long periods of time."
+    # Therefore, if the target doesn't support sd hot-plugging (Ex: the SD card slot in a battery compartment), we need to export SECONDARY_STORAGE in 'boot' section
+    #
+    # export SECONDARY_STORAGE /storage/sdcard1
+
+service fuse_usbotg /system/bin/sdcard -u 1023 -g 1023 -w 1023 -d /mnt/media_rw/usbotg /storage/usbotg
+    class late_start
+    disabled
+
+
+service atci_service /vendor/bin/atci_service
+	socket atci-service stream 660 radio system
+	socket atci-serv-fw stream 660 radio system
+	user root
+        disabled
+	group radio system
+service atcid-daemon-u /vendor/bin/atcid
+	user system
+	group radio system media
+	disabled
+	oneshot
+
+service atcid-daemon-e /vendor/bin/atcid
+	user root
+	group radio system
+	disabled
+	oneshot
+
+on early_property:ro.build.type=eng
+start atci_service
+start atcid-daemon-e
+service audio-daemon /vendor/bin/audiocmdservice_atci
+    class main
+    socket atci-audio stream 660 media system
+    user media
+    group nvram media system sdcard_rw
+    disabled
+    oneshot
+
+
+
+
+
+
+service spm_script /vendor/bin/spm_loader
+    user system
+    group system
+    class core
+    oneshot
+
+
+# goodix fingerprint
+on fs
+    chown system system /dev/goodix_fp
+
+service goodixfpd /system/bin/goodixfingerprintd
+    class late_start
+    user system
+    group system
+
+service fingerprintd /system/bin/fingerprintd
+    class late_start
+    user system
+    group system
+# goodix fingerprint end
+#
+# ST Lsm6ds3
+#
+
+on post-fs-data
+	chown system system /dev/iio:device0
+	chown system system /dev/iio:device1
+	chown system system /dev/iio:device2
+	chown system system /dev/iio:device3
+	chown system system /dev/iio:device4
+	chown system system /dev/iio:device5
+	chown system system /dev/iio:device6
+	chown system system /sys/devices/iio:device0/buffer/enable
+	chown system system /sys/devices/iio:device0/buffer/length
+	chown system system /sys/devices/iio:device0/flush
+	chown system system /sys/devices/iio:device0/sampling_frequency
+	chown system system /sys/devices/iio:device0/scan_elements/in_timestamp_en
+	chown system system /sys/devices/iio:device0/scan_elements/in_accel_x_en
+	chown system system /sys/devices/iio:device0/scan_elements/in_accel_y_en
+	chown system system /sys/devices/iio:device0/scan_elements/in_accel_z_en
+	chown system system /sys/devices/iio:device0/in_accel_x_scale
+	chown system system /sys/devices/iio:device0/in_accel_y_scale
+	chown system system /sys/devices/iio:device0/in_accel_z_scale
+
+	chown system system /sys/devices/iio:device1/buffer/enable
+	chown system system /sys/devices/iio:device1/buffer/length
+	chown system system /sys/devices/iio:device1/flush
+	chown system system /sys/devices/iio:device1/sampling_frequency
+	chown system system /sys/devices/iio:device1/scan_elements/in_timestamp_en
+	chown system system /sys/devices/iio:device1/scan_elements/in_anglvel_x_en
+	chown system system /sys/devices/iio:device1/scan_elements/in_anglvel_y_en
+	chown system system /sys/devices/iio:device1/scan_elements/in_anglvel_z_en
+	chown system system /sys/devices/iio:device1/in_anglvel_x_scale
+	chown system system /sys/devices/iio:device1/in_anglvel_y_scale
+	chown system system /sys/devices/iio:device1/in_anglvel_z_scale
+	
+	chown system system /sys/devices/iio:device2/buffer/enable
+	chown system system /sys/devices/iio:device2/buffer/length
+	chown system system /sys/devices/iio:device2/scan_elements/in_sign_motion_en
+	chown system system /sys/devices/iio:device2/scan_elements/in_timestamp_en
+	
+	
+	chown system system /sys/devices/iio:device3/buffer/enable
+	chown system system /sys/devices/iio:device3/buffer/length
+	chown system system /sys/devices/iio:device3/scan_elements/in_step_counter_en
+	chown system system /sys/devices/iio:device3/scan_elements/in_timestamp_en
+	chown system system /sys/devices/iio:device3/max_delivery_rate
+	chown system system /sys/devices/iio:device3/reset_counter
+
+	chown system system /sys/devices/iio:device4/buffer/enable
+	chown system system /sys/devices/iio:device4/buffer/length
+	chown system system /sys/devices/iio:device4/scan_elements/in_step_detector_en
+	chown system system /sys/devices/iio:device4/scan_elements/in_timestamp_en
+
+	chown system system /sys/devices/iio:device5/buffer/enable
+	chown system system /sys/devices/iio:device5/buffer/length
+	chown system system /sys/devices/iio:device5/scan_elements/in_tilt_en
+	chown system system /sys/devices/iio:device5/scan_elements/in_timestamp_en
+
+	chown system system /sys/devices/iio:device6/buffer/enable
+	chown system system /sys/devices/iio:device6/buffer/length
+	chown system system /sys/bus/iio/devices/iio:device6/compass_self_test
+	chown system system /sys/bus/iio/devices/iio:device6/flush
+	chown system system /sys/bus/iio/devices/iio:device6/sampling_frequency
+	chown system system /sys/bus/iio/devices/iio:device6/scan_elements/in_timestamp_en	
+	chown system system /sys/bus/iio/devices/iio:device6/scan_elements/in_magn_x_en
+	chown system system /sys/bus/iio/devices/iio:device6/scan_elements/in_magn_y_en
+	chown system system /sys/bus/iio/devices/iio:device6/scan_elements/in_magn_z_en
+	chown system system /sys/bus/iio/devices/iio:device6/in_magn_x_scale
+	chown system system /sys/bus/iio/devices/iio:device6/in_magn_y_scale
+	chown system system /sys/bus/iio/devices/iio:device6/in_magn_z_scale
+	
+	
+	chmod 0770 /dev/iio:device0
+	chmod 0770 /dev/iio:device1
+	chmod 0770 /dev/iio:device2
+	chmod 0770 /dev/iio:device3
+	chmod 0770 /dev/iio:device4
+	chmod 0770 /dev/iio:device5
+	chmod 0770 /dev/iio:device6
+
+	chmod 0666 /sys/devices/iio:device0/buffer/enable
+	chmod 0666 /sys/devices/iio:device0/buffer/length
+	chmod 0666 /sys/devices/iio:device0/flush
+	chmod 0666 /sys/devices/iio:device0/sampling_frequency
+	chmod 0666 /sys/devices/iio:device0/scan_elements/in_timestamp_en
+	chmod 0666 /sys/devices/iio:device0/scan_elements/in_accel_x_en
+	chmod 0666 /sys/devices/iio:device0/scan_elements/in_accel_y_en
+	chmod 0666 /sys/devices/iio:device0/scan_elements/in_accel_z_en
+	chmod 0666 /sys/devices/iio:device0/in_accel_x_scale
+	chmod 0666 /sys/devices/iio:device0/in_accel_y_scale
+	chmod 0666 /sys/devices/iio:device0/in_accel_z_scale
+
+	chmod 0666 /sys/devices/iio:device1/buffer/enable
+	chmod 0666 /sys/devices/iio:device1/buffer/length
+	chmod 0666 /sys/devices/iio:device1/flush
+	chmod 0666 /sys/devices/iio:device1/sampling_frequency
+	chmod 0666 /sys/devices/iio:device1/scan_elements/in_timestamp_en
+	chmod 0666 /sys/devices/iio:device1/scan_elements/in_anglvel_x_en
+	chmod 0666 /sys/devices/iio:device1/scan_elements/in_anglvel_y_en
+	chmod 0666 /sys/devices/iio:device1/scan_elements/in_anglvel_z_en
+	chmod 0666 /sys/devices/iio:device1/in_anglvel_x_scale
+	chmod 0666 /sys/devices/iio:device1/in_anglvel_y_scale
+	chmod 0666 /sys/devices/iio:device1/in_anglvel_z_scale
+	
+	chmod 0666 /sys/devices/iio:device2/buffer/enable
+	chmod 0666 /sys/devices/iio:device2/buffer/length
+	chmod 0666 /sys/devices/iio:device2/scan_elements/in_sign_motion_en
+	chmod 0666 /sys/devices/iio:device2/scan_elements/in_timestamp_en
+	
+	chmod 0666 /sys/devices/iio:device3/buffer/enable
+	chmod 0666 /sys/devices/iio:device3/buffer/length
+	chmod 0666 /sys/devices/iio:device3/scan_elements/in_step_counter_en
+	chmod 0666 /sys/devices/iio:device3/scan_elements/in_timestamp_en
+	chmod 0666 /sys/devices/iio:device3/max_delivery_rate
+	chmod 0666 /sys/devices/iio:device3/reset_counter
+
+	chmod 0666 /sys/devices/iio:device4/buffer/enable
+	chmod 0666 /sys/devices/iio:device4/buffer/length
+	chmod 0666 /sys/devices/iio:device4/scan_elements/in_step_detector_en
+	chmod 0666 /sys/devices/iio:device4/scan_elements/in_timestamp_en
+
+	chmod 0666 /sys/devices/iio:device5/buffer/enable
+	chmod 0666 /sys/devices/iio:device5/buffer/length
+	chmod 0666 /sys/devices/iio:device5/scan_elements/in_tilt_en
+	chmod 0666 /sys/devices/iio:device5/scan_elements/in_timestamp_en
+
+	chmod 0666 /sys/devices/iio:device6/buffer/enable
+	chmod 0666 /sys/devices/iio:device6/buffer/length
+	chmod 0666 /sys/bus/iio/devices/iio:device6/compass_self_test
+	chmod 0666 /sys/bus/iio/devices/iio:device6/flush
+	chmod 0666 /sys/bus/iio/devices/iio:device6/sampling_frequency
+	chmod 0666 /sys/bus/iio/devices/iio:device6/scan_elements/in_timestamp_en
+	chmod 0666 /sys/bus/iio/devices/iio:device6/scan_elements/in_magn_x_en
+	chmod 0666 /sys/bus/iio/devices/iio:device6/scan_elements/in_magn_y_en
+	chmod 0666 /sys/bus/iio/devices/iio:device6/scan_elements/in_magn_z_en
+	chmod 0666 /sys/bus/iio/devices/iio:device6/in_magn_x_scale
+	chmod 0666 /sys/bus/iio/devices/iio:device6/in_magn_y_scale
+	chmod 0666 /sys/bus/iio/devices/iio:device6/in_magn_z_scale
+	
+	
+	chown system system /sys/class/meizu/acc/acc_calibration
+	chown system system /sys/class/meizu/acc/acc_self_test
+	chown system system /sys/class/meizu/acc/acc_x_calibbias
+	chown system system /sys/class/meizu/acc/acc_y_calibbias
+	chown system system /sys/class/meizu/acc/acc_z_calibbias
+	chown system system /sys/class/meizu/acc/acc_x_offset
+	chown system system /sys/class/meizu/acc/acc_y_offset
+	chown system system /sys/class/meizu/acc/acc_z_offset
+	
+	chown system system /sys/class/meizu/gyr/gyr_self_test
+	
+
+	chmod 0666 /sys/class/meizu/acc/acc_calibration
+    chmod 0666 /sys/class/meizu/acc/acc_self_test
+    chmod 0666 /sys/class/meizu/acc/acc_x_calibbias
+    chmod 0666 /sys/class/meizu/acc/acc_y_calibbias
+    chmod 0666 /sys/class/meizu/acc/acc_z_calibbias
+    chmod 0666 /sys/class/meizu/acc/acc_x_offset
+    chmod 0666 /sys/class/meizu/acc/acc_y_offset
+    chmod 0666 /sys/class/meizu/acc/acc_z_offset
+     
+    chmod 0666 /sys/class/meizu/gyr/gyr_self_test
+
+# srs
+chown system system /sys/srs/srs_enable
+chmod 0660 /sys/srs/srs_enable
+chown system system /sys/srs/srs_debug
+chmod 0660 /sys/srs/srs_debug
+chown system system /sys/srs/srs_cpulevel
+chmod 0660 /sys/srs/srs_cpulevel
+chown system system /sys/srs/srs_gpulevel
+chmod 0660 /sys/srs/srs_gpulevel
+chown system system /sys/srs/srs_buslevel
+chmod 0660 /sys/srs/srs_buslevel
+chown system system /sys/srs/srs_iolevel
+chmod 0660 /sys/srs/srs_iolevel
+chown system system /sys/srs/srs_memlevel
+chmod 0660 /sys/srs/srs_memlevel
+
+#
+# Multi hal config
+#	
+	chown system system /system/etc/hals.conf
+	chmod 0664 /system/etc/hals.conf
+#	
+# alsps start
+#
+    chown system system /sys/class/meizu/als/als_batch
+    chown system system /sys/class/meizu/als/als_data
+    chown system system /sys/class/meizu/als/als_enable
+    chown system system /sys/class/meizu/als/clr_data
+    chown system system /sys/class/meizu/als/name
+
+    chown system system /sys/class/meizu/ps/name
+    chown system system /sys/class/meizu/ps/ps_calibbias
+    chown system system /sys/class/meizu/ps/ps_calibration
+    chown system system /sys/class/meizu/ps/ps_data
+    chown system system /sys/class/meizu/ps/ps_enable
+    chown system system /sys/class/meizu/ps/ps_irq_gpio
+    chown system system /sys/class/meizu/ps/ps_non_wakeup_enable
+    chown system system /sys/class/meizu/ps/ps_offset
+    chown system system /sys/class/meizu/ps/ps_wakeup_enable
+    chown system system /sys/class/meizu/ps/reg
+
+    chmod 0664 /sys/class/meizu/als/als_batch
+    chmod 0664 /sys/class/meizu/als/als_data
+    chmod 0664 /sys/class/meizu/als/als_enable
+    chmod 0664 /sys/class/meizu/als/clr_data
+    chmod 0664 /sys/class/meizu/als/name
+
+    chmod 0664 /sys/class/meizu/ps/name
+    chmod 0664 /sys/class/meizu/ps/ps_calibbias
+    chmod 0664 /sys/class/meizu/ps/ps_calibration
+    chmod 0664 /sys/class/meizu/ps/ps_data
+    chmod 0664 /sys/class/meizu/ps/ps_enable
+    chmod 0664 /sys/class/meizu/ps/ps_irq_gpio
+    chmod 0664 /sys/class/meizu/ps/ps_non_wakeup_enable
+    chmod 0664 /sys/class/meizu/ps/ps_offset
+    chmod 0664 /sys/class/meizu/ps/ps_wakeup_enable
+    chmod 0664 /sys/class/meizu/ps/reg
+
+# alsps end
+
